@@ -7,216 +7,124 @@
 #- name: Copy beaker.conf
 #  template: src=beaker.conf dest=/etc/beaker/client.conf mode=0644
 
-
-
-#- name: install by yum
-#  yum: pkg={{ item }} state=installed
-#  with_items:
-#    - vim
-#    - ruby
-#    - byobu
-#    - htop
-#    # dev tools
-#    - python-devel
-#    - protobuf-devel.x86_64
-#    - beaker-client
-#    - beakerlib
-#    - rhts-devel
-#    - rhts-test-env
-#    - rhts-python
-
-
-# Ubuntu basic configuration
+- name: Install aptitude
+  command: apt-get install aptitude
+  sudo: yes
 
 - name: Updating all packages
+  apt:  upgrade=yes update_cache=yes state=latest
   sudo: yes
-  apt: upgrade=yes update_cache=yes state=latest
 
-- name: Installing basic system packages
+- name: install by apt
   sudo: yes
-  apt: pkg=vim,p7zip,curl state=latest update_cache=yes
+  action: apt pkg={{item}} state=installed
+  with_items:
+    - curl
+    - vim
+    - libxslt1-dev
+    - libxml2-dev
+    - unzip
+    - nginx
+    - vim
+    - ruby
+    - byobu
+    - htop
+    # dev tools
+    - python-dev
+    - python-pip
+    - python-psycopg2
 
-- name: Creating program folder inside user home for IDEs and frameworks
-  file: path=/home/${username}/program owner=$username group=$username state=directory
 
-- name: install pip
-  easy_install: name=pip
+
+#- name: Creating folder for install software
+#  file: path=/home/{{ username }}/install_software owner=$username group=$username state=directory
 
 - name: install dep-lib
-  pip: name={{ item }}
+  sudo: yes
+  pip: name={{ item }} extra_args='-U'
   with_items:
    - fluent-logger
    - line_profiler
    - flask
-
-- name: Checking PyCharm installation
-  register: inst_pycharm
-  file: path=/home/${username}/program/pycharm state=directory
-
-- name: Downloading PyCharm
-  get_url: url=$pycharm dest=/tmp/pycharm.tar.gz
-  when_changed: $inst_pycharm
-
-- name: Installing PyCharm
-  command: tar -xzf /tmp/pycharm.tar.gz -C /home/${username}/program/
-  when_changed: $inst_pycharm
-
-
-- name: Checking Google Chrome installation
-  sudo: yes
-  register: inst_chrome
-  file: path=/opt/google/chrome state=directory
-
-- name: Installing Google Chrome dependencies
-  sudo: yes
-  apt: name=libgconf2-4,libxss1 state=latest
-  when_changed: $inst_chrome
-
-- name: Downloading Google Chrome
-  get_url: url=$chrome dest=/tmp/google-chrome-stable_current_amd64.deb
-  when_changed: $inst_chrome
-
-- name: Installing Google Chrome
-  sudo: yes
-  shell: dpkg -i /tmp/google-chrome-stable_current_amd64.deb
-  when_changed: $inst_chrome
-
-  - name: Installing Version Control Systems
-  sudo: yes
-  apt: pkg=git,mercurial,gitg,meld state=installed
-
-- name: Configuring GIT defaults
-  template: src=common/templates/.gitconfig.j2 dest=/home/${username}/.gitconfig owner=$username group=$username mode=0644 backup=yes
-
-- name: Configuring VIM defaults
-  copy: src=common/files/.exrc dest=/home/${username}/.exrc owner=$username group=$username mode=0644 backup=yes
-
-- name: Checking Heroku toolbelt installation
-  sudo: yes
-  register: inst_heroku
-  file: path=/usr/local/heroku state=directory
-
-- name: Installing Ubuntu Heroku toolbelt
-  sudo: yes
-  shell: wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh
-  when_changed: $inst_heroku
-
-- name: Checking Pythonz installation
-  register: inst_pythonz
-  file: path=/home/${username}/.pythonz state=directory
-
-- name: Installing Pythonz
-  shell: curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash
-  when_changed: $inst_pythonz
-
-- name: Installing PIP
-  apt: pkg=python-pip state=installed
-
-- name: Checking Python virtualenvwrapper installation
-  sudo: yes
-  register: inst_virtualenvwrapper
-  file: path=/usr/local/bin/virtualenvwrapper.sh
-
-- name: Installing Python virtualenv
-  sudo: yes
-  shell: pip install virtualenvwrapper
-  when_changed: $inst_virtualenvwrapper
-
-- name: Installing system iPython
-  sudo: yes
-  pip: name=ipython state=present
-
-- name: Installing system Requests
-  sudo: yes
-  pip: name=requests state=present
-
-- name: Installing system Ruby
-  sudo: yes
-  apt: pkg=ruby state=latest
-
-- name: Checking Ruby RVM installation
-  register: inst_rvm
-  file: path=/home/${username}/.rvm state=directory
-
-- name: Installing Ruby RVM
-  shell: \curl -L https://get.rvm.io | bash -s stable
-  when_changed: $inst_rvm
-
-- name: Checking Oracle JDK 7 installation
-  sudo: yes
-  register: inst_java
-  file: path=/usr/lib/jvm/java-7-oracle state=directory
+   - requests
+   - kazoo
+   - ipython
+   - virtualenv
+   - virtualenvwrapper
 
 - name: Enabling Oracle JDK 7 PPA
   sudo: yes
   apt_repository: repo=ppa:webupd8team/java
-  when_changed: $inst_java
 
-- name: Unattended installation
-  sudo: yes
-  shell: echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections
+
 
 - name: Installing Oracle JDK 7
   sudo: yes
   apt: pkg=oracle-java7-installer state=latest update_cache=yes
-  when_changed: $inst_java
 
-- name: Installing Maven
+
+- name: Downloading PyCharm
+  get_url: url={{ pycharm }} dest=/tmp/pycharm.tar.gz
+
+
+- name: Installing PyCharm
+  command: tar -xzf /tmp/pycharm.tar.gz -C /home/{{ username }}/install_software/
+
+
+- name: Installing Google Chrome dependencies
   sudo: yes
-  apt: pkg=maven state=installed
+  apt: name=libgconf2-4,libxss1 state=latest
 
-- name: Installing Ant
+
+- name: Downloading Google Chrome
+  get_url: url={{ chrome }} dest=/tmp/google-chrome-stable_current_amd64.deb
+
+- name: Installing Google Chrome
   sudo: yes
-  apt: pkg=ant state=installed
+  shell: dpkg -i /tmp/google-chrome-stable_current_amd64.deb
 
-- name: Installing Node Version Manager (NVM)
-  register: inst_nvm
-  git: repo=git://github.com/creationix/nvm.git dest=/home/${username}/.nvm
 
-- name: Checking Seam Framework installation
-  register: inst_seam
-  file: path=/home/${username}/program/jboss-seam-2.3.0.Final state=directory
+- name: Installing Version Control Systems
+  sudo: yes
+  apt: pkg=git,mercurial,gitg,meld state=installed
 
-- name: Downloading Seam Framework
-  get_url: url=$seam dest=/tmp/seam.tar.gz
-  when_changed: $inst_seam
-
-- name: Installing Seam Framework
-  command: tar -xzf /tmp/seam.tar.gz -C /home/${username}/program/
-  when_changed: $inst_seam
+- name: Configuring GIT defaults
+  template: src=.gitconfig.tmp dest=/home/{{ username }}/.gitconfig owner={{ username }} group={{ username }} mode=0644 backup=yes
 
 
 
 - name: MongoDB | Install ppa key
+  sudo: yes
   apt_key: id=7F0CEB10 url=http://keyserver.ubuntu.com:11371/pks/lookup?op=get&search=0x9ECBEC467F0CEB10 state=present
 - name: MongoDB | Install ppa
+  sudo: yes
   apt_repository: repo='deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' state=present
 - name: MongoDB | Install package
-  apt: name=mongodb-{{ mongodb_apt_flavor }} state={{ mongodb_apt_state }}
-  notify: restart mongod
-
-# Configuring Virtualization tools
-
-- name: Installing KVM virtualization
   sudo: yes
-  apt: name=qemu-kvm,libvirt-bin,ubuntu-vm-builder,bridge-utils,virt-manager state=latest
+  apt: name=mongodb state=installed
 
-- name: Add user to libvirtd group
-  sudo: yes
-  user: name=$username groups=adm,cdrom,sudo,dip,plugdev,lpadmin,sambashare,libvirtd
 
 - name: Installing VLC
   sudo: yes
   apt: pkg=vlc state=latest
 
-- name: Installing latest NodeJS 0.10.x
-  shell: executable=/bin/bash source ~/.nvm/nvm.sh && nvm install 0.10.8
+- name: Download nodejs {{nodejs_version_tag}}
+  get_url: url={{nodejs_tarball_url}} dest={{nodejs_tmp_dir}}{{nodejs_file_name}}
+  when: wanted_version_installed.rc == 1
 
-- name: Default latest NodeJS Version
-  shell: executable=/bin/bash source ~/.nvm/nvm.sh && nvm alias default 0.10.8
+- name: Verify SHASUM of nodejs {{nodejs_version_tag}}
+  shell: curl {{nodejs_shasum_url}} | grep {{nodejs_file_name}} | sha1sum -c chdir={{nodejs_tmp_dir}}
+  when: wanted_version_installed.rc == 1
 
-- name: Installing Bower
-  shell: executable=/bin/bash source ~/.nvm/nvm.sh && npm install -g bower chdir=/home/${username}
+- name: Unpack nodejs {{nodejs_version_tag}}
+  command: tar -xvzf {{nodejs_file_name}} chdir={{nodejs_tmp_dir}}
+  when: wanted_version_installed.rc == 1
 
-- name: Installing Yeoman (Yo)
-  shell: executable=/bin/bash source ~/.nvm/nvm.sh && npm install -g yo grunt-cli chdir=/home/${username}
+- name: Compile and install nodejs {{nodejs_version_tag}}
+  shell: ./configure --prefix={{nodejs_path}} && make && make install chdir={{nodejs_tmp_dir}}{{nodejs_file_tag}}
+  sudo: true
+  when: wanted_version_installed.rc == 1
+
+- name: NPM Install global packages
+  npm: name={{item}} global=yes
+  with_items: nodejs_global_packages

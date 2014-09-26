@@ -3,11 +3,13 @@
 # Ansible gem module, in order to play nicely with RVM
 
 - name: Ensure Jekyll's gem dependencies are installed
-  shell: gem install {{ item.name }} -v {{ item.version }} {{ item.flags }}
+  sudo: yes
+  shell: gem install {{ item.name }}  {{ item.flags }}
   with_items:
-    - { name: 'jekyll',  version: "{{ jekyll_version }}", flags: '--no-ri --no-rdoc' }
+    - { name: 'jekyll',   flags: '--no-ri --no-rdoc' }
 
 - name: Install kramdown
+  sudo: yes
   shell: gem install kramdown
 
 # Print a useful warning

@@ -1,0 +1,19 @@
+[user]
+	email = jiajie@zelin.io
+	name = jiajie
+[core]
+	editor = vim
+	pager = less -N
+[merge]
+	tool = vimdiff
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+[alias]
+	co = checkout
+	br = branch
+	st = status
+	ci = commit
+[sendemail]
+	smtpserver = /usr/local/bin/msmtp
