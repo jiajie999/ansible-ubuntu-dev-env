@@ -1,0 +1,15 @@
+---
+# User configuration
+username: jiajie
+
+# Git configuration
+git_username: jiajie999
+git_useremail: jiajie999@gmail.com
+git_checkout_alias: co
+git_status_alias: st
+git_commit_alias: ci
+git_color: true
+
+# Download URL configuration
+chrome: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+pycharm: http://download-cf.jetbrains.com/python/pycharm-professional-3.4.1.tar.gz
